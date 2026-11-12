@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/armanlife/arman-vpn-client",
+  "version": "1.0.18",
+  "revision": "405f412fa28c0f56bd2a0d85617558e7216d6b05",
+  "source": "Public embedded /app/ assets served by the verified v1.0.18 Core release binary (arman-vpn-client)",
+  "sha256": {
+    "index.html": "aa4e677348abc60209663331f6b19b7a2bba387d21b4d7ce4a958ed52f399aa0",
+    "app.js": "678fdc1cb05cef714ecc6e875d2c13946233e1c0b5ce0b0ee60b4d974498c4e0",
+    "app.css": "4d4410ed45f0c1aebf75a9f151a60ac85dd5d454acf7be7672c5c1c6006fe012",
+    "icon.png": "ca9f5858db9bb5b969b79cda78b852f561dde863ca258867f7ec66bb13f17bd2"
+  },
+  "localization": "zh-CN.1",
+  "core_binary_modified": false
+}

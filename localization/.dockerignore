@@ -1,0 +1,8 @@
+*
+!Dockerfile
+!nginx.conf
+!localized-headers.conf
+!web/
+!web/**
+!LICENSE
+!UPSTREAM.json

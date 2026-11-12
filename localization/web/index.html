@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Arman VPN 代理控制台</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.4 5 5 6.4l5.6 5.6L5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6L19 6.4 17.6 5 12 10.6z"/></symbol>
+    <symbol id="i-overview" viewBox="0 0 24 24"><path d="M4 13h6V4H4zm0 7h6v-5H4zm10 0h6v-9h-6zm0-16v5h6V4z"/></symbol>
+    <symbol id="i-accounts" viewBox="0 0 24 24"><path d="M16 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 16 11zm-8 0A3 3 0 1 0 5 8a3 3 0 0 0 3 3zm0 2c-2.7 0-6 1.3-6 3.5V19h7v-2.2c0-1.3.6-2.4 1.6-3.3A9 9 0 0 0 8 13zm8 0c-3 0-7 1.5-7 4v2h14v-2c0-2.5-4-4-7-4z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm6.9 6h-3a15.7 15.7 0 0 0-1.3-3.6A8 8 0 0 1 18.9 8zM12 4a14 14 0 0 1 1.9 4h-3.8A14 14 0 0 1 12 4zM4.3 14a8 8 0 0 1 0-4h3.4a16.5 16.5 0 0 0 0 4zm.8 2h3a15.7 15.7 0 0 0 1.3 3.6A8 8 0 0 1 5.1 16zm3-8h-3a8 8 0 0 1 4.3-3.6A15.7 15.7 0 0 0 8.1 8zM12 20a14 14 0 0 1-1.9-4h3.8A14 14 0 0 1 12 20zm2.3-6H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4zm.3 5.6a15.7 15.7 0 0 0 1.3-3.6h3a8 8 0 0 1-4.3 3.6zm1.7-5.6a16.5 16.5 0 0 0 0-4h3.4a8 8 0 0 1 0 4z"/></symbol>
+    <symbol id="i-logs" viewBox="0 0 24 24"><path d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 2v12h14V6zm2 2.5 3 2.5-3 2.5zM11 14h6v1.5h-6z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 3.5-3.5 3.5 3.5 0 0 1-3.5 3.5z" transform="translate(-1 0)"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path transform="translate(0 .45)" d="m12 2.5 2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M12 5C6.5 5 2.7 9.4 1.5 12c1.2 2.6 5 7 10.5 7s9.3-4.4 10.5-7C21.3 9.4 17.5 5 12 5zm0 12a5 5 0 1 1 5-5 5 5 0 0 1-5 5zm0-8a3 3 0 1 0 3 3 3 3 0 0 0-3-3z"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="m3.3 2 18.7 18.7-1.4 1.4-3.4-3.4A11.5 11.5 0 0 1 12 19C6.5 19 2.7 14.6 1.5 12a13.6 13.6 0 0 1 4.1-5L1.9 3.4zm4.8 7.6A5 5 0 0 0 14.4 16l-1.6-1.6A3 3 0 0 1 9.6 11.2zM12 5c5.5 0 9.3 4.4 10.5 7a13.4 13.4 0 0 1-3 4.1l-3-3A5 5 0 0 0 10 7.6L7.9 5.5A11.6 11.6 0 0 1 12 5z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm-1-4h2v2h-2zm1-10a4 4 0 0 0-4 4h2a2 2 0 1 1 2 2 1 1 0 0 0-1 1v2h2v-1.1A4 4 0 0 0 12 6z"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 2.5 1.5 21h21zm0 4.2L19 19H5zM11 10v5h2v-5zm0 6.5v2h2v-2z"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 5a1 1 0 0 1 1-1h6l2 2h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1zm2 1v12h14V8h-7.8l-2-2z"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M17.7 6.3A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.8-4.2L13 11h7V4z"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M12 8a2 2 0 1 0-2-2 2 2 0 0 0 2 2zm0 2a2 2 0 1 0 2 2 2 2 0 0 0-2-2zm0 6a2 2 0 1 0 2 2 2 2 0 0 0-2-2z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><path d="M8 7V4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-3v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zm2 0h6a1 1 0 0 1 1 1v6h2V5h-9zM6 9v9h9V9z"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m12 7 6 6-1.4 1.4-4.6-4.6-4.6 4.6L6 13z"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m12 17-6-6 1.4-1.4 4.6 4.6 4.6-4.6L18 11z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4zm-3 6h12l-1 12H7zm4 2v8h1.5v-8zm3.5 0v8H15v-8z"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 15.3A8.5 8.5 0 0 1 8.7 4a8.5 8.5 0 1 0 11.3 11.3z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm-1-5h2v3h-2zm0 17h2v3h-2zM2 11h3v2H2zm17 0h3v2h-3zM4.2 5.6l1.4-1.4 2.1 2.1-1.4 1.4zm12.1 12.1 1.4-1.4 2.1 2.1-1.4 1.4zM4.2 18.4l2.1-2.1 1.4 1.4-2.1 2.1zM16.3 6.3l2.1-2.1 1.4 1.4-2.1 2.1z"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6v-2H5V5h5zm6.6 4.4L15.2 8.8 17.4 11H9v2h8.4l-2.2 2.2 1.4 1.4L21.2 12z"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M11 2h2v10h-2zm-4.9 3.3 1.4 1.4A7 7 0 1 0 16.5 6.7l1.4-1.4A9 9 0 1 1 6.1 5.3z"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><path d="M9.78 11.16 8.36 12.58c-.68-.69-1.34-1.58-1.79-2.94l1.94-.49c.32.89.77 1.5 1.27 2.01zM11 6 7 2 3 6h3.02c.02.81.08 1.54.19 2.17l1.94-.49C8.08 7.2 8.03 6.63 8.02 6H11zm10 0-4-4-4 4h2.99c-.1 3.68-1.28 4.75-2.54 5.88-.5.44-1.01.92-1.45 1.55-.34-.49-.73-.88-1.13-1.24L9.46 13.6c.93.85 1.54 1.54 1.54 3.4v5h2v-5c0-2.02.71-2.66 1.79-3.63 1.38-1.24 3.08-2.78 3.2-7.37H21z"/></symbol>
+    <symbol id="i-dns" viewBox="0 0 24 24"><path d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><path d="M17 9V7a5 5 0 0 0-10 0v2H5v12h14V9zm-8-2a3 3 0 0 1 6 0v2H9zm4 9.7V18h-2v-1.3a2 2 0 1 1 2 0z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m9.5 16.2-4.2-4.2-1.4 1.4 5.6 5.6 11-11-1.4-1.4z"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 4a10 10 0 0 0-8.7 15h17.4A10 10 0 0 0 12 4zm0 2a8 8 0 0 1 7.5 11h-15A8 8 0 0 1 12 6zm3.5 2.6-3 4.4a1.6 1.6 0 1 0 1.3.9z"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><path d="M12.65 10A5.99 5.99 0 0 0 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 0 0 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></symbol>
+    <symbol id="i-tune" viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><path d="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61 1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42A8.962 8.962 0 0 0 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9a8.994 8.994 0 0 0 7.03-14.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></symbol>
+    <symbol id="i-block" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9A7.902 7.902 0 0 1 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1A7.902 7.902 0 0 1 20 12c0 4.42-3.58 8-8 8z"/></symbol>
+    <symbol id="i-lan" viewBox="0 0 24 24"><path d="M13 22h8v-7h-3v-4h-5V9h3V2H8v7h3v2H6v4H3v7h8v-7H8v-2h8v2h-3z"/></symbol>
+    <symbol id="i-lan" viewBox="0 0 24 24"><path d="M13 22h8v-7h-3v-4h-5V9h3V2H8v7h3v2H6v4H3v7h8v-7H8v-2h8v2h-3v7zM10 7V4h4v3h-4zM9 17v3H5v-3h4zm10 0v3h-4v-3h4z"/></symbol>
+    <symbol id="i-cut" viewBox="0 0 24 24"><path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.89-2-2s.9-2 2-2 2 .89 2 2-.9 2-2 2zm0 12c-1.1 0-2-.89-2-2s.9-2 2-2 2 .89 2 2-.9 2-2 2zm6-7.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5zM19 3l-6 6 2 2 7-7V3z"/></symbol>
+    <symbol id="i-ethernet" viewBox="0 0 24 24"><path d="M7.77 6.76 6.23 5.48.82 12l5.41 6.52 1.54-1.28L3.42 12l4.35-5.24zM7 13h2v-2H7v2zm10-2h-2v2h2v-2zm-6 2h2v-2h-2v2zm6.77-7.52-1.54 1.28L20.58 12l-4.35 5.24 1.54 1.28L23.18 12l-5.41-6.52z"/></symbol>
+    <symbol id="i-computer" viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></symbol>
+    <symbol id="i-percent" viewBox="0 0 24 24"><path d="M7.5 11C9.43 11 11 9.43 11 7.5S9.43 4 7.5 4 4 5.57 4 7.5 5.57 11 7.5 11zm0-5C8.33 6 9 6.67 9 7.5S8.33 9 7.5 9 6 8.33 6 7.5 6.67 6 7.5 6zM4.0025 18.5832 18.59 3.9955l1.4142 1.4142L5.4167 19.9974zM16.5 13c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5 3.5-1.57 3.5-3.5-1.57-3.5-3.5-3.5zm0 5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></symbol>
+  </svg>
+
+  <div id="login-view" class="login-view" hidden>
+    <form id="login-form" class="login-card">
+      <div class="brand-mark big" aria-hidden="true"></div>
+      <h1>Arman VPN</h1>
+      <p class="muted">登录代理控制台。</p>
+      <label class="field"><span>用户名</span><input name="username" autocomplete="username" required></label>
+      <label class="field"><span>密码</span><input name="password" type="password" autocomplete="current-password" required data-reveal></label>
+      <p class="form-error" id="login-error"></p>
+      <button type="submit" class="btn primary block">登录</button>
+    </form>
+  </div>
+
+  <div id="app" class="shell" hidden>
+    <!-- Narrow screens: the bar with the menu button; the sidebar is then a
+         drawer (setNavOpen). -->
+    <header class="mobile-bar">
+      <button id="nav-toggle" class="btn icon" aria-label="打开菜单" aria-controls="sidebar" aria-expanded="false"><svg><use href="#i-menu"/></svg></button>
+      <div class="brand-mark" aria-hidden="true"></div>
+      <span class="brand-name">Arman VPN</span>
+      <!-- The theme switch and Sign out, moved here on narrow screens
+           (placeHeadButtons). -->
+      <div class="bar-actions" id="bar-actions"></div>
+    </header>
+    <div class="nav-backdrop" id="nav-backdrop"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <div class="brand-name">Arman VPN</div>
+          <div class="brand-sub">代理控制台</div>
+        </div>
+        <button id="nav-close" class="btn icon nav-close" aria-label="关闭菜单"><svg><use href="#i-close"/></svg></button>
+      </div>
+      <nav class="nav" role="tablist">
+        <button class="nav-item active" data-view="overview"><svg><use href="#i-overview"/></svg><span>概览</span></button>
+        <button class="nav-item" data-view="locations"><svg><use href="#i-globe"/></svg><span>服务器</span></button>
+        <button class="nav-item" data-view="accounts"><svg><use href="#i-accounts"/></svg><span>账号</span><b class="nav-badge" id="nav-accounts-badge" hidden></b></button>
+        <button class="nav-item" data-view="logs"><svg><use href="#i-logs"/></svg><span>日志</span></button>
+        <button class="nav-item" data-view="settings"><svg><use href="#i-settings"/></svg><span>设置</span></button>
+        <button class="nav-item" data-view="help"><svg><use href="#i-help"/></svg><span>帮助</span></button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="mini-status" id="mini-status">
+          <span class="mini-flag" id="mini-flag"><span class="dot"></span></span>
+          <div>
+            <div class="mini-title" id="mini-title">…</div>
+            <div class="mini-sub" id="mini-sub"></div>
+          </div>
+        </div>
+        <div class="version-tag" id="version-tag" title="程序版本"></div>
+        <a class="version-tag repo-link" href="https://github.com/armanlife/arman-vpn-client" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true"><use href="#i-github"/></svg><span>GitHub</span></a>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="page-head">
+        <div>
+          <h1 id="page-title">概览</h1>
+          <p class="muted" id="page-sub" hidden></p>
+        </div>
+        <div class="head-actions" id="head-actions">
+          <span id="state-pill" class="pill">…</span>
+          <span class="head-sep" aria-hidden="true"></span>
+          <button id="theme-toggle" class="btn icon" title="切换深色与浅色主题" aria-label="切换深色与浅色主题"><svg><use href="#i-moon"/></svg></button>
+          <button id="logout" class="btn icon" title="退出登录" aria-label="退出登录" hidden><svg><use href="#i-logout"/></svg></button>
+        </div>
+      </header>
+
+      <div id="banner" class="banner" hidden></div>
+
+      <main>
+        <!-- ======================================================= overview -->
+        <section id="view-overview" class="view">
+          <article class="hero card">
+            <div class="hero-status">
+              <div class="pulse" id="hero-pulse"><span></span></div>
+              <div class="hero-text">
+                <div class="eyebrow" id="hero-eyebrow">状态</div>
+                <h2 class="hero-title"><span id="hero-flag"></span><span id="hero-title">…</span></h2>
+                <p class="muted" id="hero-message"></p>
+                <div class="chips" id="hero-chips"></div>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <button id="run-test" class="btn primary"><svg><use href="#i-bolt"/></svg><span>测试连接</span></button>
+              <button id="restart-proxy" class="btn"><svg><use href="#i-refresh"/></svg><span>重启</span></button>
+              <button id="power" class="btn" title="关闭：代理端口将关闭，不再连接 Mozilla，直到再次在此处或应用中开启"><svg><use href="#i-power"/></svg><span>关闭</span></button>
+            </div>
+          </article>
+
+          <div id="notices" class="notices" hidden></div>
+
+          <div class="kpis">
+            <article class="kpi card" id="kpi-account">
+              <div class="kpi-label">当前账号</div>
+              <div class="kpi-body">
+                <svg class="gauge" viewBox="0 0 42 42" aria-hidden="true">
+                  <circle class="gauge-track" cx="21" cy="21" r="17"></circle>
+                  <circle class="gauge-fill" id="gauge-fill" cx="21" cy="21" r="17" stroke-dasharray="0 107"></circle>
+                </svg>
+                <div>
+                  <div class="kpi-value" id="kpi-usage">–</div>
+                  <div class="kpi-sub" id="kpi-usage-sub"></div>
+                </div>
+              </div>
+            </article>
+            <article class="kpi card">
+              <div class="kpi-label">延迟</div>
+              <div class="kpi-value" id="kpi-latency">–</div>
+              <div class="kpi-sub" id="kpi-latency-sub">请先测试连接</div>
+            </article>
+            <article class="kpi card">
+              <div class="kpi-label">速度</div>
+              <div class="kpi-value speed"><span class="speed-down" id="kpi-down">–</span></div>
+              <div class="kpi-sub" id="kpi-speed-sub"></div>
+            </article>
+            <article class="kpi card">
+              <div class="kpi-label" id="kpi-uptime-label">运行时间</div>
+              <div class="kpi-value" id="kpi-uptime">–</div>
+              <div class="kpi-sub" id="kpi-uptime-sub"></div>
+            </article>
+          </div>
+
+          <div class="grid-2">
+            <article class="card">
+              <div class="card-head"><h3>当前账号</h3><a class="link" href="#accounts">管理</a></div>
+              <div id="active-account"></div>
+            </article>
+            <article class="card">
+              <div class="card-head"><h3>连接测试</h3><span class="muted small" id="test-when"></span></div>
+              <div id="test-result" class="test-result"><p class="muted">通过隧道发送 HTTPS 请求，并测量各阶段的耗时。</p></div>
+            </article>
+          </div>
+
+          <div class="grid-2">
+            <article class="card">
+              <div class="card-head"><h3>代理</h3></div>
+              <dl class="facts" id="proxy-facts"></dl>
+            </article>
+            <article class="card">
+              <div class="card-head"><h3>最近活动</h3><a class="link" href="#logs">全部日志</a></div>
+              <div class="mini-log" id="recent-log"></div>
+            </article>
+          </div>
+        </section>
+
+        <!-- ======================================================= accounts -->
+        <section id="view-accounts" class="view" hidden>
+          <div class="toolbar-row">
+            <p class="muted" id="accounts-hint"></p>
+            <div class="hero-actions">
+              <a class="btn" href="https://accounts.firefox.com/" target="_blank" rel="noopener noreferrer"><svg><use href="#i-link"/></svg><span>创建账号</span></a>
+              <button id="add-account" class="btn primary"><svg><use href="#i-plus"/></svg><span>添加账号</span></button>
+              <details class="more-menu" id="backup-menu">
+                <summary class="btn" title="更多" aria-label="更多"><svg><use href="#i-more"/></svg></summary>
+                <div class="menu-panel">
+                  <button type="button" id="backup-save"><svg><use href="#i-down"/></svg><span>保存备份</span></button>
+                  <button type="button" id="backup-import"><svg><use href="#i-up"/></svg><span>导入备份</span></button>
+                </div>
+              </details>
+              <input type="file" id="backup-file" accept=".zip,application/zip" hidden>
+            </div>
+          </div>
+          <div id="account-list" class="account-list"></div>
+        </section>
+
+        <!-- ====================================================== locations -->
+        <section id="view-locations" class="view" hidden>
+          <article class="card mode-card">
+            <div>
+              <div class="eyebrow">服务器选择</div>
+              <h3 id="mode-title">…</h3>
+              <p class="muted small" id="mode-sub"></p>
+            </div>
+            <div class="mode-actions">
+              <button class="btn" id="mode-recommended">自动（推荐）</button>
+              <button class="btn" id="mode-fastest"><svg><use href="#i-bolt"/></svg><span>自动（最快）</span></button>
+            </div>
+          </article>
+
+          <div class="toolbar-row">
+            <div class="toolbar">
+              <div class="segmented" role="group" aria-label="排序">
+                <button class="seg active" data-sort="latency">实际延迟</button>
+                <button class="seg" data-sort="name">名称</button>
+              </div>
+              <input id="location-search" type="search" placeholder="搜索服务器">
+            </div>
+            <button id="measure" class="btn primary"><svg><use href="#i-gauge"/></svg><span>测试实际延迟</span></button>
+          </div>
+          <p class="muted small" id="ping-note"></p>
+          <p class="muted small" id="serverlist-note"></p>
+          <div class="table-card card">
+            <table class="table" id="location-table">
+              <thead><tr><th>服务器</th><th class="hide-sm">地址</th><th>实际延迟</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =========================================================== logs -->
+        <section id="view-logs" class="view" hidden>
+          <div class="segmented logs-tabs" role="group" aria-label="日志或连接">
+            <button class="seg active" data-logtab="log">日志</button>
+            <button class="seg" data-logtab="connections">连接</button>
+          </div>
+          <div id="logs-log">
+          <div class="toolbar-row">
+            <div class="toolbar">
+              <select id="log-level">
+                <option value="DEBUG">所有级别</option>
+                <option value="INFO" selected>信息及以上</option>
+                <option value="WARN">警告和错误</option>
+                <option value="ERROR">仅错误</option>
+              </select>
+              <input id="log-search" type="search" placeholder="筛选文本">
+              <label class="switch"><input type="checkbox" id="log-follow" checked><span></span>自动滚动</label>
+            </div>
+            <button id="log-clear" class="btn">清空视图</button>
+          </div>
+          <div id="log-list" class="terminal" role="log" aria-live="polite"></div>
+          </div>
+          <!-- The proxy's connections (GET /api/connections), in the order
+               they started, read once a second while shown. -->
+          <div id="logs-connections" hidden>
+            <div class="toolbar-row">
+              <div class="toolbar">
+                <input id="conn-search" type="search" placeholder="筛选目标">
+                <span id="conn-open" class="muted"></span>
+                <label class="switch"><input type="checkbox" id="conn-follow" checked><span></span>自动滚动</label>
+              </div>
+              <button id="conn-clear" class="btn">清空</button>
+            </div>
+            <div class="table-card card conn-card" id="conn-card">
+              <table class="table conn-table">
+                <thead><tr><th>时间</th><th>目标</th><th>规则</th><th>协议</th><th class="hide-sm">流量</th><th class="hide-sm">时长</th></tr></thead>
+                <tbody id="conn-rows"></tbody>
+              </table>
+              <p id="conn-empty" class="muted conn-empty">暂无连接。</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================= settings -->
+        <section id="view-settings" class="view" hidden>
+          <form id="settings-form" class="settings">
+            <nav class="settings-nav">
+              <a href="#set-dashboard"><svg><use href="#i-overview"/></svg><span>控制台</span></a>
+              <a href="#set-connection"><svg><use href="#i-globe"/></svg><span>连接</span></a>
+              <a href="#set-local"><svg><use href="#i-ethernet"/></svg><span>本地代理</span></a>
+              <a href="#set-dns"><svg><use href="#i-dns"/></svg><span>DNS</span></a>
+              <a href="#set-routing"><svg><use href="#i-route"/></svg><span>分流</span></a>
+              <a href="#set-accounts"><svg><use href="#i-accounts"/></svg><span>账号</span></a>
+              <a href="#set-blocked"><svg><use href="#i-lock"/></svg><span>当 Mozilla 被封锁时</span></a>
+              <a href="#set-fragment"><svg><use href="#i-cut"/></svg><span>TLS 分片</span></a>
+              <a href="#set-upstream"><svg><use href="#i-lan"/></svg><span>上游代理</span></a>
+              <a href="#set-advanced"><svg><use href="#i-tune"/></svg><span>高级</span></a>
+            </nav>
+            <div class="settings-body">
+              <!-- Each setting is a row: an icon, its name with a short hint,
+                   and its control at the end (under the text on a narrow
+                   screen, and for lists). -->
+              <fieldset class="card" id="set-dashboard">
+                <legend><svg><use href="#i-overview"/></svg>控制台</legend>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-lan"/></svg></span>
+                    <span class="set-text"><label for="dash-host">访问范围</label><small>所有网络：允许其他设备访问；请设置登录凭据</small></span>
+                    <span class="set-ctl">
+                      <select id="dash-host" data-listen="dashboard">
+                        <option value="127.0.0.1">仅本机（127.0.0.1）</option>
+                        <option value="0.0.0.0">所有网络（0.0.0.0）</option>
+                      </select>
+                    </span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-ethernet"/></svg></span>
+                    <span class="set-text"><label for="dash-port">端口</label></span>
+                    <span class="set-ctl"><input id="dash-port" class="port" type="number" min="1" max="65535" required></span>
+                  </div>
+                  <div class="set-row stack">
+                    <span class="set-ic"><svg><use href="#i-key"/></svg></span>
+                    <span class="set-text"><span class="set-title">登录凭据</span><small class="points"><span>设置用户名和密码（至少 6 个字符）后，访问时需要登录</span><span>用户名留空将取消登录验证</span><span>密码留空将保留当前密码</span></small></span>
+                    <span class="set-ctl pair">
+                      <input name="dashboard.username" autocomplete="off" placeholder="用户名" aria-label="控制台用户名">
+                      <input name="dashboard_password" class="secret" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="新密码" aria-label="控制台新密码" data-reveal data-1p-ignore data-lpignore="true" data-bwignore>
+                    </span>
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset class="card" id="set-connection">
+                <legend><svg><use href="#i-globe"/></svg>连接</legend>
+                <p class="set-intro">设置本程序连接 Mozilla 的方式，以及流量的出口位置。</p>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-pin"/></svg></span>
+                    <span class="set-text"><label for="location-select">地区</label><small class="points"><span>自动：使用 Mozilla 推荐的地区</span><span>最快：每次启动时选择延迟最低的地区</span></small></span>
+                    <span class="set-ctl"><select name="location" id="location-select"></select></span>
+                  </div>
+                  <div class="set-row" id="server-field" hidden>
+                    <span class="set-ic"><svg><use href="#i-server"/></svg></span>
+                    <span class="set-text"><label for="f-server">服务器地址</label><small>Mozilla 代理服务器的地址，格式为 host:port</small></span>
+                    <span class="set-ctl"><input id="f-server" name="proxy.server" spellcheck="false" placeholder="host:443"></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-bolt"/></svg></span>
+                    <span class="set-text"><span class="set-title">协议</span><small>QUIC 受阻时，HTTP/3 会回退到 HTTP/2；HTTP/1.1 会为每个网站连接单独建立一条 TLS 连接，适合会限速或中断长连接的网络</small></span>
+                    <span class="set-ctl">
+                      <span class="segs" role="radiogroup" aria-label="协议">
+                        <label><input type="radio" name="proxy.transport" value="h1"><span>HTTP/1.1</span></label>
+                        <label><input type="radio" name="proxy.transport" value="h2"><span>HTTP/2</span></label>
+                        <label><input type="radio" name="proxy.transport" value="h3"><span>HTTP/3</span></label>
+                      </span>
+                    </span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-lan"/></svg></span>
+                    <span class="set-text"><label for="f-ip-version">IP 版本</label><small>仅用于连接 Mozilla 的服务器</small></span>
+                    <span class="set-ctl">
+                      <select id="f-ip-version" name="proxy.ip_version">
+                        <option value="auto">自动（先 IPv4，再 IPv6）</option>
+                        <option value="dual">同时使用（双栈）</option>
+                        <option value="ipv6_first">先 IPv6，再 IPv4</option>
+                        <option value="ipv4">仅 IPv4</option>
+                        <option value="ipv6">仅 IPv6</option>
+                      </select>
+                    </span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-moon"/></svg></span>
+                    <span class="set-text"><label for="f-sleep">闲置时暂停</label><small class="points"><span>无流量达到此时长后，断开与 Mozilla 的连接，让账号休眠</span><span>下次连接时会在几秒内唤醒</span></small></span>
+                    <span class="set-ctl">
+                      <select id="f-sleep" name="proxy.idle_sleep">
+                        <option value="0s">从不</option>
+                        <option value="5m0s">5 分钟后</option>
+                        <option value="15m0s">15 分钟后</option>
+                        <option value="30m0s">30 分钟后</option>
+                        <option value="1h0m0s">1 小时后</option>
+                      </select>
+                    </span>
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset class="card" id="set-local">
+                <legend><svg><use href="#i-ethernet"/></svg>本地代理</legend>
+                <p class="set-intro">应用连接的入口：同一端口同时支持 SOCKS5 和 HTTP。</p>
+                <div class="set-list">
+                  <div class="set-row" id="system-proxy-row" hidden>
+                    <span class="set-ic"><svg><use href="#i-computer"/></svg></span>
+                    <span class="set-text"><span class="set-title">模式</span><small>系统代理：让 Windows 和大多数应用通过 VPN 连接</small></span>
+                    <span class="set-ctl">
+                      <span class="segs" role="radiogroup" aria-label="模式">
+                        <label><input type="radio" name="system_proxy.mode" value="clear"><span>仅提供代理</span></label>
+                        <label><input type="radio" name="system_proxy.mode" value="set"><span>系统代理</span></label>
+                      </span>
+                    </span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-lan"/></svg></span>
+                    <span class="set-text"><label for="proxy-host">访问范围</label><small>所有网络：其他设备或 VPS 的客户端也可以使用</small></span>
+                    <span class="set-ctl">
+                      <select id="proxy-host" data-listen="proxy">
+                        <option value="127.0.0.1">仅本机（127.0.0.1）</option>
+                        <option value="0.0.0.0">所有网络（0.0.0.0）</option>
+                      </select>
+                    </span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-ethernet"/></svg></span>
+                    <span class="set-text"><label for="proxy-port">端口</label></span>
+                    <span class="set-ctl"><input id="proxy-port" class="port" type="number" min="1" max="65535" required></span>
+                  </div>
+                  <div class="set-row stack">
+                    <span class="set-ic"><svg><use href="#i-key"/></svg></span>
+                    <span class="set-text"><span class="set-title">登录凭据</span><small class="points"><span>可选：用户名和密码须同时设置，或都不设置</span><span>向网络开放但未设置凭据时，任何发现此端口的人都可以使用</span></small></span>
+                    <span class="set-ctl pair">
+                      <input name="proxy.username" autocomplete="off" placeholder="用户名" aria-label="代理用户名">
+                      <input name="proxy.password" class="secret" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="密码" aria-label="代理密码" data-reveal data-1p-ignore data-lpignore="true" data-bwignore>
+                    </span>
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset class="card" id="set-dns">
+                <legend><svg><use href="#i-dns"/></svg>DNS</legend>
+                <p class="set-intro">设置本程序如何解析 Mozilla 服务器的地址。通过 VPN 访问的网站由 Mozilla 出口解析，不在本机解析。</p>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-dns"/></svg></span>
+                    <span class="set-text"><label for="dns-preset">服务器</label><small>加密 DNS 可避免受过滤网络返回错误的解析结果</small></span>
+                    <span class="set-ctl">
+                      <select id="dns-preset">
+                        <option value="auto">自动（Cloudflare、Google、Quad9）</option>
+                        <option value="system">系统 DNS</option>
+                        <option value="cloudflare">Cloudflare, HTTPS (1.1.1.1)</option>
+                        <option value="google">Google, HTTPS (8.8.8.8)</option>
+                        <option value="quad9">Quad9, HTTPS (9.9.9.9)</option>
+                        <option value="cloudflare_dot">Cloudflare, TLS (1.1.1.1:853)</option>
+                        <option value="custom">自定义…</option>
+                      </select>
+                    </span>
+                  </div>
+                  <div class="set-row stack" id="dns-custom-field" hidden>
+                    <span class="set-ic"><svg><use href="#i-link"/></svg></span>
+                    <span class="set-text"><label for="dns-custom">自定义服务器</label><small>每行一个：https://host/dns-query、tls://host 或 IP 地址</small></span>
+                    <span class="set-ctl"><textarea id="dns-custom" rows="3" spellcheck="false" placeholder="https://1.1.1.1/dns-query&#10;tls://9.9.9.9&#10;8.8.8.8"></textarea></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-refresh"/></svg></span>
+                    <span class="set-text"><label for="f-dns-fallback">回退到系统 DNS</label><small>当这些服务器无响应时使用</small></span>
+                    <span class="set-ctl"><label class="switch"><input type="checkbox" id="f-dns-fallback" name="dns.fallback_to_system"><span></span></label></span>
+                  </div>
+                  <div class="set-row stack">
+                    <span class="set-ic"><svg><use href="#i-gauge"/></svg></span>
+                    <span class="set-text"><span class="set-title">测试</span><small class="points"><span>分别使用上述服务器和系统 DNS 解析 Mozilla 的地址</span><span>受过滤：网络正在篡改 DNS 解析结果</span></small></span>
+                    <span class="set-ctl start"><button type="button" class="btn" id="dns-test"><svg><use href="#i-gauge"/></svg><span>测试 DNS</span></button></span>
+                  </div>
+                </div>
+                <div id="dns-test-result"></div>
+              </fieldset>
+
+              <fieldset class="card" id="set-routing">
+                <legend><svg><use href="#i-route"/></svg>分流</legend>
+                <p class="set-intro">让指定网站通过您自己的网络直连，而不经过 Mozilla：访问更快，也不消耗流量额度。</p>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-flag"/></svg></span>
+                    <span class="set-text"><label for="f-region">国家或地区</label><small>该地区的网站和 IP 地址将直连</small></span>
+                    <span class="set-ctl">
+                      <select id="f-region" name="routing.region">
+                        <option value="ir">伊朗</option>
+                        <option value="cn">中国</option>
+                        <option value="ru">俄罗斯</option>
+                        <option value="af">阿富汗</option>
+                        <option value="tr">土耳其</option>
+                        <option value="id">印度尼西亚</option>
+                        <option value="br">巴西</option>
+                        <option value="">无（仅私有网络）</option>
+                      </select>
+                    </span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-route"/></svg></span>
+                    <span class="set-text"><label for="f-routing">启用分流</label><small id="routing-state" class="route-state"></small></span>
+                    <span class="set-ctl"><label class="switch"><input type="checkbox" id="f-routing" name="routing.enabled"><span></span></label></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-block"/></svg></span>
+                    <span class="set-text"><label for="routing-ads">拦截广告</label><small>将 geosite:category-ads-all 添加到拦截列表</small></span>
+                    <span class="set-ctl"><label class="switch"><input type="checkbox" id="routing-ads"><span></span></label></span>
+                  </div>
+                </div>
+
+                <h4 class="set-sub">规则</h4>
+                <div class="set-list">
+                  <div class="set-row stack">
+                    <span class="set-ic"><svg><use href="#i-check"/></svg></span>
+                    <span class="set-text"><label for="routing-direct">直连</label><small class="points"><span>列表中的网站和 IP 地址不通过 VPN 访问</span><span>已填入所选地区的规则，可添加、修改或删除条目</span><span>选择其他地区会替换这些规则</span></small></span>
+                    <span class="set-ctl col">
+                      <textarea id="routing-direct" rows="6" spellcheck="false" placeholder="domain:example.com&#10;192.0.2.0/24"></textarea>
+                      <button type="button" class="btn sm ghost" id="routing-restore"><svg><use href="#i-refresh"/></svg><span>恢复所选地区的规则</span></button>
+                    </span>
+                  </div>
+                  <div class="set-row stack">
+                    <span class="set-ic"><svg><use href="#i-block"/></svg></span>
+                    <span class="set-text"><label for="routing-block">拦截</label><small>列表中的网站和 IP 地址将被完全拦截，既不直连，也不通过 VPN 访问</small></span>
+                    <span class="set-ctl"><textarea id="routing-block" rows="3" spellcheck="false" placeholder="domain:example.com"></textarea></span>
+                  </div>
+                  <details class="set-syntax">
+                    <summary>规则写法</summary>
+                    <dl>
+                      <dt><code>domain:example.com</code></dt><dd>该域名及其所有子域名</dd>
+                      <dt><code>full:www.example.com</code></dt><dd>仅匹配此完整域名</dd>
+                      <dt><code>keyword:bank</code></dt><dd>包含该关键词的域名</dd>
+                      <dt><code>regexp:\.ir$</code></dt><dd>匹配该正则表达式的域名</dd>
+                      <dt><code>geosite:ir</code></dt><dd>地理数据文件中指定标签下的网站</dd>
+                      <dt><code>geoip:ir</code></dt><dd>地理数据文件中指定国家或地区的 IP 地址</dd>
+                      <dt><code>ext:iran.dat:ir</code></dt><dd>另一个地理数据文件中的标签</dd>
+                      <dt><code>1.2.3.4</code> <code>10.0.0.0/8</code></dt><dd>IP 地址或网段</dd>
+                    </dl>
+                  </details>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-search"/></svg></span>
+                    <span class="set-text"><label for="f-resolve">为 IP 规则解析域名</label><small>对未匹配域名规则的网站应用 IP 规则（通过 Mozilla 加密解析）</small></span>
+                    <span class="set-ctl"><label class="switch"><input type="checkbox" id="f-resolve" name="routing.resolve_domains"><span></span></label></span>
+                  </div>
+                </div>
+
+                <h4 class="set-sub">地理数据文件</h4>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-globe"/></svg></span>
+                    <span class="set-text"><label for="routing-source">来源</label><small>两种来源均涵盖所有国家和地区</small></span>
+                    <span class="set-ctl"><select id="routing-source"><option value="">手动（使用下方网址）</option></select></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-timer"/></svg></span>
+                    <span class="set-text"><label for="routing-days">更新间隔</label></span>
+                    <span class="set-ctl"><span class="suffix"><input id="routing-days" type="number" min="1" max="365"><i>天</i></span></span>
+                  </div>
+                  <details class="set-more">
+                    <summary>文件网址</summary>
+                    <div class="set-list">
+                      <div class="set-row stack">
+                        <span class="set-ic"><svg><use href="#i-link"/></svg></span>
+                        <span class="set-text"><label for="f-geosite">网站（geosite.dat）</label></span>
+                        <span class="set-ctl"><input id="f-geosite" name="routing.geosite_url" spellcheck="false"></span>
+                      </div>
+                      <div class="set-row stack">
+                        <span class="set-ic"><svg><use href="#i-link"/></svg></span>
+                        <span class="set-text"><label for="f-geoip">IP 地址（geoip.dat）</label></span>
+                        <span class="set-ctl"><input id="f-geoip" name="routing.geoip_url" spellcheck="false"></span>
+                      </div>
+                    </div>
+                  </details>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-refresh"/></svg></span>
+                    <span class="set-text"><span class="set-title">文件</span><small id="routing-files"></small></span>
+                    <span class="set-ctl"><button type="button" class="btn" id="routing-update"><svg><use href="#i-refresh"/></svg><span>立即更新</span></button></span>
+                  </div>
+                </div>
+
+                <h4 class="set-sub">测试目标地址</h4>
+                <div class="route-test">
+                  <span class="route-test-row"><input id="route-target" spellcheck="false" placeholder="digikala.com" aria-label="目标地址"><button type="button" class="btn" id="route-test"><svg><use href="#i-gauge"/></svg><span>测试</span></button></span>
+                  <small class="muted">输入域名、IP 地址或网址，按已保存的规则查看其访问方式及匹配的规则</small>
+                  <div id="route-test-result"></div>
+                </div>
+              </fieldset>
+
+              <fieldset class="card" id="set-accounts">
+                <legend><svg><use href="#i-accounts"/></svg>账号</legend>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-percent"/></svg></span>
+                    <span class="set-text"><label for="f-threshold">账号切换阈值</label><small>当前账号已用流量达到此比例时，由下一个账号接替，现有连接不会中断</small></span>
+                    <span class="set-ctl"><span class="suffix"><input id="f-threshold" name="accounts.switch_threshold_percent" type="number" min="1" max="100" step="1"><i>%</i></span></span>
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset class="card" id="set-blocked">
+                <legend><svg><use href="#i-lock"/></svg>当 Mozilla 被封锁时</legend>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-swap"/></svg></span>
+                    <span class="set-text"><label for="f-shared-relay-on">共享中继</label><small>如果 Mozilla 封锁了您所在的地区，可使用应用内置的共享中继。已启用的个人中继优先。</small></span>
+                    <span class="set-ctl"><label class="switch"><input type="checkbox" id="f-shared-relay-on" name="network.shared_relay_enabled"><span></span></label></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-swap"/></svg></span>
+                    <span class="set-text"><label for="f-relay-on">个人中继</label><small>关闭后仍会保留已填写的地址，且不会停用共享中继。</small></span>
+                    <span class="set-ctl"><label class="switch"><input type="checkbox" id="f-relay-on" name="network.api_relay_enabled"><span></span></label></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-swap"/></svg></span>
+                    <span class="set-text"><label for="f-relay">中继服务器</label><small>您自己的 Cloudflare Worker，或自建主机上的 relay.php。<br>仅在无法直连 Mozilla 时使用：登录、账号和服务器列表经由它转发，VPN 流量不经过它。</small></span>
+                    <span class="set-ctl"><input id="f-relay" name="network.api_relay" spellcheck="false" placeholder="https://relay.NAME.workers.dev/?secret=…"></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-gauge"/></svg></span>
+                    <span class="set-text"><span>中继可用性</span><small>测试已填写的地址，不会保存，也不会启用中继。</small></span>
+                    <span class="set-ctl"><button type="button" class="btn" id="relay-test">测试中继可用性</button></span>
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset class="card" id="set-fragment">
+                <legend><svg><use href="#i-cut"/></svg>TLS 分片</legend>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-cut"/></svg></span>
+                    <span class="set-text"><label for="f-fragment">分片方式</label><small class="points"><span>关闭：常规 TLS 连接</span><span>首字节：在首字节（0x16）处拆分 TLS 头</span><span>服务器名称（SNI）：将服务器名称（SNI）拆分到多个 TCP 数据包</span></small></span>
+                    <span class="set-ctl">
+                      <select id="f-fragment" name="network.hello_split">
+                        <option value="off">关闭</option>
+                        <option value="first-byte">首字节</option>
+                        <option value="sni">服务器名称（SNI）</option>
+                        <option value="record">TLS 记录</option>
+                      </select>
+                    </span>
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset class="card" id="set-upstream">
+                <legend><svg><use href="#i-lan"/></svg>上游代理</legend>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-lan"/></svg></span>
+                    <span class="set-text"><label for="f-upstream-on">使用上游代理</label><small>与 Mozilla 的连接将通过此代理，适用于封锁或限速 Mozilla 的网络。<br>如果代理运行在本机，请将其排除在 VPN 之外。</small></span>
+                    <span class="set-ctl"><label class="switch"><input type="checkbox" id="f-upstream-on" name="network.upstream_proxy_enabled"><span></span></label></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-lan"/></svg></span>
+                    <span class="set-text"><label for="upstream-host">SOCKS5 代理地址</label></span>
+                    <span class="set-ctl"><input id="upstream-host" spellcheck="false" autocapitalize="off" placeholder="127.0.0.1"></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-lan"/></svg></span>
+                    <span class="set-text"><label for="upstream-port">端口</label></span>
+                    <span class="set-ctl"><input id="upstream-port" class="port" inputmode="numeric" spellcheck="false" placeholder="1080"></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-key"/></svg></span>
+                    <span class="set-text"><span class="set-title">登录凭据</span><small>可选：用户名和密码须同时填写，或都不填写。</small></span>
+                    <span class="set-ctl pair">
+                      <input name="network.upstream_proxy_username" autocomplete="off" placeholder="用户名" aria-label="上游代理用户名">
+                      <input name="network.upstream_proxy_password" class="secret" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="密码" aria-label="上游代理密码" data-reveal data-1p-ignore data-lpignore="true" data-bwignore>
+                    </span>
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset class="card" id="set-advanced">
+                <legend><svg><use href="#i-tune"/></svg>高级</legend>
+                <p class="set-intro">默认设置适合绝大多数用户。</p>
+                <div class="set-list">
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-logs"/></svg></span>
+                    <span class="set-text"><label for="f-verbose">记录访问目标</label><small>将每个访问的网站写入日志（涉及隐私）</small></span>
+                    <span class="set-ctl"><label class="switch"><input type="checkbox" id="f-verbose" name="logging.verbose"><span></span></label></span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-server"/></svg></span>
+                    <span class="set-text"><label for="f-upstream">与 Mozilla 的连接数</label><small>每台设备固定使用一个连接，因此仅在多台设备共享代理时，增加连接数才有帮助</small></span>
+                    <span class="set-ctl">
+                      <select id="f-upstream" name="proxy.upstream_connections" data-int>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="4">4</option>
+                        <option value="8">8</option>
+                      </select>
+                    </span>
+                  </div>
+                  <div class="set-row">
+                    <span class="set-ic"><svg><use href="#i-accounts"/></svg></span>
+                    <span class="set-text"><label for="f-max">最大并发连接数</label><small>应用到本代理的连接数；0 表示不限制</small></span>
+                    <span class="set-ctl"><input id="f-max" class="port" name="proxy.max_connections" type="number" min="0" data-int></span>
+                  </div>
+                </div>
+              </fieldset>
+
+              <div class="folders" id="data-dir"></div>
+            </div>
+            <div class="save-bar" id="save-bar">
+              <span class="save-note">有未保存的更改</span>
+              <span class="form-error" id="settings-error"></span>
+              <button type="button" class="btn ghost" id="settings-discard">放弃更改</button>
+              <button type="submit" class="btn primary">保存</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- =========================================================== help -->
+        <section id="view-help" class="view" hidden>
+          <div class="help-grid">
+            <article class="card help-card wide" id="help-connect">
+              <h3>连接应用</h3>
+              <p>任何支持 SOCKS5 或 HTTP 代理的应用都可以使用本代理，例如 v2rayN、v2rayNG、NekoBox、浏览器和 Telegram 等。它们访问任何网站的流量都会经过 Mozilla 的 VPN 服务器，并不限于访问 Mozilla 网站。同一地址同时支持 SOCKS5 和 HTTP 代理客户端。</p>
+              <div class="help-fields">
+                <div class="help-field"><span>SOCKS5 地址</span><code id="help-socks-addr">127.0.0.1:10810</code><button type="button" class="btn sm" id="help-copy-addr"><svg><use href="#i-copy"/></svg><span>复制</span></button></div>
+                <div class="help-field"><span>适用于 v2rayN、v2rayNG、NekoBox 的链接</span><code id="help-socks-link">socks://Og@127.0.0.1:10810</code><button type="button" class="btn sm" id="help-copy-link"><svg><use href="#i-copy"/></svg><span>复制</span></button></div>
+              </div>
+              <ul>
+                <li>v2rayN、v2rayNG、NekoBox：复制链接后从剪贴板导入，或使用上述地址添加 SOCKS 服务器。</li>
+                <li>在手机等其他设备上使用：在设置中将 SOCKS5 监听地址设为 <code>0.0.0.0:10810</code> ，并设置 SOCKS5 用户名和密码，然后使用本机的网络地址代替 <code>127.0.0.1</code>。</li>
+              </ul>
+            </article>
+
+            <article class="card help-card" id="help-ports">
+              <h3>TCP：端口 80、443、8080 和 8443</h3>
+              <p>Mozilla 的代理仅允许连接以下网页端口： <strong>80、443、8080 和 8443</strong> 。Mozilla 服务器会拒绝其他所有端口，例如 <code>http://203.0.113.5:9898/</code>、SSH（22）或邮件服务（25、465、587、993）。本程序无法改变这一限制，但有两种例外：通过 SSH 连接 GitHub 的 git 请求会自动改用 GitHub SSH 服务器的 443 端口；发送到代理的 DNS（53）请求则由本程序通过 Mozilla 使用 DNS over HTTPS 解析并响应。</p>
+              <ul>
+                <li>将您自己的网站部署在上述四个端口之一（通常选择 8080 或 8443）。</li>
+                <li>或让浏览器直接访问该地址：Firefox → 设置 → 网络设置 → <em>不使用代理的地址</em>。</li>
+              </ul>
+            </article>
+
+            <article class="card help-card" id="help-udp">
+              <h3>UDP：端口 80、443、3478、8080、8443 和 49152-65534</h3>
+              <p>其他 UDP 端口的通话和在线游戏无法通过此代理使用。在 VPN 中，QUIC（UDP 443 端口）会被有意拒绝：浏览器会改用基于 TCP 的 HTTP/2。</p>
+            </article>
+
+            <article class="card help-card" id="help-loop">
+              <h3>本程序的连接被转回自身（代理回环）</h3>
+              <p>其他程序将本程序自身的流量又转入本代理，导致无法连接 Mozilla，所有连接都失败。在路由器的 PassWall2 中，请关闭本机代理（Localhost Proxy）。若使用其他 VPN 程序的 TUN 模式（v2rayN、Clash、sing-box），请添加进程规则，让 arman-vpn-core 直连。</p>
+            </article>
+
+            <article class="card help-card" id="help-routing">
+              <h3>本国或本地区网站直连（分流）</h3>
+              <p>可在“设置 → 分流”中按需启用。所选地区（默认为伊朗，也支持中国、俄罗斯、阿富汗、土耳其、印度尼西亚和巴西）的网站和网段将通过您自己的网络直连：访问更快，不会因境外 IP 地址而遭到拒绝，也不消耗账号的流量额度；其他流量仍通过 Mozilla。域名和网段列表每 10 天自动下载更新。直连网站可以看到您的真实 IP 地址。</p>
+            </article>
+            <article class="card help-card" id="help-logs">
+              <h3>日志</h3>
+              <p>“日志”页面显示实时日志。日志文件位于数据目录下的 <code>logs</code> 文件夹中，每天一个文件，保留七天。</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="signin-dialog">
+    <form id="signin-form" method="dialog" class="dialog-body">
+      <div class="dialog-head">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <h2>添加 Firefox 账号</h2>
+          <p class="muted small">该账号将添加到列表末尾并参与轮换。</p>
+        </div>
+      </div>
+      <p class="banner warn small" id="signin-warning" hidden>此控制台不在本机上。Firefox 账号密码将在网络上以未加密的方式发送。</p>
+      <div id="signin-start">
+        <label class="field"><span>电子邮箱</span><input name="email" type="email" autocomplete="off" required></label>
+        <label class="field"><span>密码</span><input name="password" class="secret" autocomplete="off" spellcheck="false" autocapitalize="off" data-reveal data-1p-ignore data-lpignore="true" data-bwignore required></label>
+        <p class="muted small">还没有 Firefox 账号？ <a href="https://accounts.firefox.com/" target="_blank" rel="noopener noreferrer">创建一个</a></p>
+        <p class="muted small">密码会加密保存在数据目录中，供您选择「重新登录」时使用。</p>
+      </div>
+      <div id="signin-step" hidden>
+        <p id="signin-message" class="step-message"></p>
+        <img id="signin-captcha" alt="图形验证码" hidden>
+        <label class="field" id="signin-input-label" hidden><span id="signin-input-caption">验证码</span><input name="value" autocomplete="one-time-code"></label>
+      </div>
+      <p class="form-error" id="signin-error"></p>
+      <div class="dialog-actions">
+        <button type="button" id="signin-cancel" class="btn">取消</button>
+        <button type="submit" id="signin-submit" class="btn primary">登录</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="relay-test-dialog" aria-labelledby="relay-test-title">
+    <div class="dialog-body">
+      <h2 id="relay-test-title">中继可用性测试</h2>
+      <p class="muted small">仅检查中继，不会向 Mozilla 发送请求，也不会上传账号信息。</p>
+      <p id="relay-test-state" role="status">测试中…</p>
+      <pre id="relay-test-log" dir="ltr" aria-live="polite"></pre>
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="relay-test-copy">复制报告</button>
+        <button type="button" class="btn" id="relay-test-retry">重试</button>
+        <button type="button" class="btn primary" id="relay-test-close">关闭</button>
+      </div>
+    </div>
+  </dialog>
+  <div id="toast" class="toast" hidden></div>
+</body>
+</html>
