@@ -54,6 +54,9 @@ func (s *SOCKSServer) serveHTTP(client *bufferedConn, clientAddr string, start t
 		writeHTTPError(client, http.StatusProxyAuthRequired, "The proxy needs the username and password set in Settings.", `Basic realm="Arman VPN"`)
 		return
 	}
+	if s.serveRegionHTTP(client, req) {
+		return
+	}
 	if s.handshakeTimeout > 0 {
 		_ = client.SetDeadline(time.Time{})
 	}
@@ -106,6 +109,9 @@ func (s *SOCKSServer) serveHTTP(client *bufferedConn, clientAddr string, start t
 // openTarget opens a tunnel to target for a SOCKS5 or HTTP client, lists
 // it (Conns), and notes and logs a port Mozilla's proxy refuses, and a loop.
 func (s *SOCKSServer) openTarget(client net.Conn, target, clientAddr, inbound string) (net.Conn, error) {
+	if isRegionalHost(target) {
+		return nil, ErrBlockedByRule
+	}
 	tracked := s.Conns.begin(inbound, clientAddr, target)
 	if egress.OwnDial(target) {
 		if loop, warn := loops.note(target, time.Now()); loop {
