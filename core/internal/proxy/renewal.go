@@ -683,7 +683,36 @@ func (c *Controller) checkQuota() {
 	ctx, cancel := context.WithTimeout(context.Background(), PassRenewTimeout)
 	defer cancel()
 
-	auth, err := c.ensureOAuthToken(ctx)
+	// Keep native/regional account selection and OAuth rotation outside this
+	// complete quota transaction. The HEAD still belongs to c.auth, not the
+	// pool-wide account that a regional lease may have selected meanwhile.
+	var issuerHeld bool
+	if c.accounts != nil {
+		if err := c.accounts.lockIssuer(ctx); err != nil {
+			return
+		}
+		issuerHeld = true
+		defer func() {
+			if issuerHeld {
+				c.accounts.unlockIssuer()
+			}
+		}()
+	}
+	var auth *runtimeAuth
+	var err error
+	if c.accounts != nil {
+		c.mu.Lock()
+		id := c.auth.AccountID()
+		c.mu.Unlock()
+		auth, err = c.accounts.freshAuthForLocked(ctx, id)
+		if err == nil {
+			c.mu.Lock()
+			c.auth = auth
+			c.mu.Unlock()
+		}
+	} else {
+		auth, err = c.ensureOAuthToken(ctx)
+	}
 	if err != nil {
 		logx.Warn("quota check failed: %s", logx.Err(err))
 		return
@@ -696,6 +725,10 @@ func (c *Controller) checkQuota() {
 		// it and signs in again when Mozilla refuses the refresh token,
 		// rather than at the next scheduled renewal.
 		logx.Warn("Guardian refused the access token in the quota check; renewing now err=%s", logx.Err(err))
+		if issuerHeld {
+			c.accounts.unlockIssuer()
+			issuerHeld = false
+		}
 		if err := c.renewLocked(ctx); err != nil {
 			now := time.Now()
 			c.recordRenewalOutcome(err, now.Add(RenewalRetryDelay(err, now)))
@@ -713,7 +746,7 @@ func (c *Controller) checkQuota() {
 	// setAside is the active account this check takes out of rotation.
 	var setAside accounts.Account
 	if c.accounts != nil {
-		if acc, reached := c.accounts.observeActiveUsage(usage); reached {
+		if acc, reached := c.accounts.observeAccountUsage(auth.AccountID(), usage); reached {
 			handOver, setAside = true, acc
 			logx.Info("active account reached the switch threshold; switching account=%s", logx.Email(acc.Name()))
 		}
@@ -722,12 +755,29 @@ func (c *Controller) checkQuota() {
 	if !handOver {
 		return
 	}
+	if c.accounts != nil {
+		// A stale controller's A quota must not switch away from healthy B
+		// merely because a regional request already selected B.
+		active, ok := c.accounts.mgr.Active()
+		c.mu.Lock()
+		unchangedAuth := c.auth.AccountID() == auth.AccountID()
+		c.mu.Unlock()
+		if !ok || active.ID != auth.AccountID() || !unchangedAuth {
+			return
+		}
+	}
 	if c.accounts == nil {
 		logx.Warn("monthly proxy quota exhausted; new tunnels fail once the current proxy pass expires quota_reset=%s", usage.Reset.Format(time.RFC3339))
 		return
 	}
 
-	_, pass, err := c.acquireUsablePass(ctx)
+	selectedAuth, pass, err := c.accounts.acquirePassLocked(ctx, c.guardian)
+	if err == nil {
+		c.mu.Lock()
+		c.auth = selectedAuth
+		c.mu.Unlock()
+		c.setUsage(pass.Usage)
+	}
 	if err != nil {
 		logx.Warn("quota check failed: %s", logx.Err(err))
 		if setAside.ID != "" {
@@ -754,6 +804,16 @@ func (c *Controller) ensureOAuthToken(ctx context.Context) (*runtimeAuth, error)
 	auth := c.auth
 	c.mu.Unlock()
 
+	if c.accounts != nil && auth != nil && auth.accountID != "" {
+		fresh, err := c.accounts.FreshAuthFor(ctx, auth.accountID)
+		if err != nil {
+			return nil, err
+		}
+		c.mu.Lock()
+		c.auth = fresh
+		c.mu.Unlock()
+		return fresh, nil
+	}
 	now := time.Now()
 	if auth != nil && auth.accessTokenValid(now) {
 		return auth, nil

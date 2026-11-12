@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/armanlife/arman-vpn-client/core/internal/logx"
@@ -35,6 +36,9 @@ const (
 type SOCKSServer struct {
 	// Auth, when set, requires username/password authentication.
 	Auth *socksCredentials
+	// RegionHTTP is a narrow local extension, never a dashboard API. It is
+	// reachable only through authenticated absolute HTTP proxy requests.
+	RegionHTTP func(*http.Request) ([]byte, int)
 	// Notices, when set, collects requests refused because of a limit, for
 	// the dashboard.
 	Notices *Notices

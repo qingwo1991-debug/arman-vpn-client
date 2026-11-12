@@ -486,7 +486,11 @@ func (d *Daemon) setOn(on bool) {
 	if on {
 		d.connectFailure = ""
 	}
+	engine := d.engine
 	d.mu.Unlock()
+	if changed && engine != nil {
+		engine.regional.invalidate()
+	}
 	if changed {
 		logx.Info("proxy turned on=%t", on)
 		d.RequestRestart()
@@ -737,6 +741,9 @@ func (d *Daemon) currentEngine() *proxyEngine {
 // engine is started, and a running one switches away from an account that
 // was removed or disabled.
 func (d *Daemon) accountsChanged() error {
+	if e := d.currentEngine(); e != nil {
+		e.regional.invalidate()
+	}
 	list, err := d.store.List()
 	if err != nil {
 		return err
@@ -754,6 +761,9 @@ func (d *Daemon) accountsChanged() error {
 		return err
 	}
 	engine := d.currentEngine()
+	if engine != nil {
+		engine.regional.invalidate()
+	}
 	if engine == nil {
 		d.RequestRestart()
 		return nil
@@ -786,7 +796,10 @@ func (d *Daemon) switchAccount(engine *proxyEngine) {
 // account into rotation.
 func (d *Daemon) addSignedInAccount(email, password string, token *fxa.TokenResponse) (accounts.Account, error) {
 	now := time.Now()
-	acc, created, err := d.store.Add(email, &fxa.SavedTokens{
+	if e := d.currentEngine(); e != nil {
+		e.regional.invalidate()
+	}
+	acc, created, err := d.pool.InstallCredentials(context.Background(), email, password, &fxa.SavedTokens{
 		AccessToken:  token.AccessToken,
 		RefreshToken: token.RefreshToken,
 		Scope:        token.Scope,
@@ -796,11 +809,8 @@ func (d *Daemon) addSignedInAccount(email, password string, token *fxa.TokenResp
 	if err != nil {
 		return accounts.Account{}, err
 	}
-	d.pool.Forget(acc.ID)
-	if password != "" {
-		if err := d.store.SetPassword(acc.ID, password); err != nil {
-			logx.Warn("saving the account password failed account=%s err=%s", logx.Email(acc.Name()), logx.Err(err))
-		}
+	if e := d.currentEngine(); e != nil {
+		e.regional.invalidate()
 	}
 	go d.pool.EnsureDevice(context.Background(), acc.ID)
 	if created {
@@ -822,10 +832,15 @@ func (d *Daemon) removeAccount(id string) error {
 	if _, err := d.store.Get(id); err != nil {
 		return fmt.Errorf("unknown account %s", id)
 	}
-	if err := d.store.Remove(id); err != nil {
+	if e := d.currentEngine(); e != nil {
+		e.regional.invalidate()
+	}
+	if err := d.pool.RemoveCredentials(context.Background(), id); err != nil {
 		return err
 	}
-	d.pool.Forget(id)
+	if e := d.currentEngine(); e != nil {
+		e.regional.invalidate()
+	}
 	logx.Info("account removed id=%s", id)
 	return d.accountsChanged()
 }
@@ -890,6 +905,9 @@ func (d *Daemon) activateAccount(id string) error {
 	if !enabled {
 		return errors.New("only enabled accounts can be activated")
 	}
+	if e := d.currentEngine(); e != nil {
+		e.regional.invalidate()
+	}
 	if err := d.mgr.Activate(id); err != nil {
 		return err
 	}
@@ -910,18 +928,7 @@ func (d *Daemon) refreshAccountUsage(id string, manual bool) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), proxy.PassRenewTimeout)
 	defer cancel()
-	auth, err := d.pool.AuthFor(acc)
-	if err != nil {
-		return err
-	}
-	if auth, err = proxy.FreshRuntimeAuth(ctx, auth); err != nil {
-		return err
-	}
-	fetchUsage := guardian.FetchProxyUsage
-	if manual {
-		fetchUsage = guardian.RefreshProxyUsage
-	}
-	usage, err := fetchUsage(ctx, d.config().Network.GuardianEndpoint, auth.Token.AccessToken)
+	usage, err := d.pool.FetchUsage(ctx, d.config().Network.GuardianEndpoint, acc, manual)
 	if err != nil {
 		return err
 	}

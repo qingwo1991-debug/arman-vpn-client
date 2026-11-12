@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -41,6 +42,7 @@ type proxyEngine struct {
 	// statusFile is the status.json path (fixed for the engine's life).
 	statusFile string
 	idle       idleState
+	regional   regionalLeaseState
 	// routed is what clients connect through: the controller, or directly
 	// for destinations the routing rules send there.
 	routed   *proxy.RoutedOpener
@@ -109,6 +111,7 @@ func (d *Daemon) startEngine() (*proxyEngine, error) {
 	engine.routed = routed
 	socks := proxy.NewSOCKSServer(routed, config.HandshakeTimeout, config.IdleTimeout, cfg.Proxy.MaxConnections)
 	socks.Auth = proxy.SOCKSCredentials(cfg.Proxy.Username, cfg.Proxy.Password)
+	socks.RegionHTTP = func(r *http.Request) ([]byte, int) { return d.regionalHTTP(engine, r) }
 	socks.Notices = d.notices
 	socks.Conns, socks.Transport = d.conns, engine.currentTransport
 	if socks.Auth == nil && !hostIsLoopbackListen(cfg.Proxy.Listen) {
@@ -438,6 +441,7 @@ func (e *proxyEngine) stop() {
 	c := e.controller
 	e.controller = nil
 	e.idle.mu.Unlock()
+	e.regional.invalidate()
 	if c != nil {
 		_ = c.Close()
 	} else if err := proxy.WriteIdleStatus(e.statusFile, proxy.StatusClosed); err != nil {

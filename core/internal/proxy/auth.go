@@ -57,6 +57,14 @@ func (a *runtimeAuth) save() error {
 	return nil
 }
 
+// AccountID identifies a pass internally; it is never sent by regional APIs.
+func (a *runtimeAuth) AccountID() string {
+	if a == nil {
+		return ""
+	}
+	return a.accountID
+}
+
 func (a *runtimeAuth) accessTokenValid(now time.Time) bool {
 	if a == nil || a.Token == nil || a.Token.AccessToken == "" {
 		return false

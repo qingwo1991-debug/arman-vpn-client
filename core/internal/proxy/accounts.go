@@ -27,13 +27,16 @@ const unavailableAccountRetry = 15 * time.Minute
 type AccountPool struct {
 	store *accounts.Store
 	mgr   *accounts.Manager
+	// issuer serializes pass issuance and OAuth refresh/relogin across all
+	// native and regional callers, not merely each Controller's renewMu.
+	issuer chan struct{}
 
 	mu    sync.Mutex
 	auths map[string]*runtimeAuth
 }
 
 func NewAccountPool(store *accounts.Store, mgr *accounts.Manager) *AccountPool {
-	return &AccountPool{store: store, mgr: mgr, auths: make(map[string]*runtimeAuth)}
+	return &AccountPool{store: store, mgr: mgr, issuer: make(chan struct{}, 1), auths: make(map[string]*runtimeAuth)}
 }
 
 // AuthFor returns the cached or stored credentials of an account.
@@ -93,6 +96,16 @@ func (p *AccountPool) ActiveName() string {
 // account set aside at the switch threshold goes on with the pass it
 // supplied when no other account supplies one after all.
 func (p *AccountPool) AcquirePass(ctx context.Context, endpoint string) (*runtimeAuth, *guardian.ProxyPassInfo, error) {
+	if err := p.lockIssuer(ctx); err != nil {
+		return nil, nil, err
+	}
+	defer p.unlockIssuer()
+	return p.acquirePassLocked(ctx, endpoint)
+}
+
+// acquirePassLocked also serves the quota handover, whose observed account
+// identity must stay stable relative to other native and regional issuers.
+func (p *AccountPool) acquirePassLocked(ctx context.Context, endpoint string) (*runtimeAuth, *guardian.ProxyPassInfo, error) {
 	previous, hadActive := p.mgr.Active()
 	tried := make(map[string]bool)
 	// setAside is the first account this call set aside at the switch
@@ -242,15 +255,23 @@ func (p *AccountPool) Record(acc accounts.Account, pass *guardian.ProxyPassInfo,
 	}
 }
 
-// observeActiveUsage records usage of the active account and reports
-// whether it should hand over to the next account, and which account that
-// is.
-func (p *AccountPool) observeActiveUsage(usage *guardian.ProxyUsage) (accounts.Account, bool) {
-	acc, ok := p.mgr.Active()
-	if !ok || usage == nil {
+// observeAccountUsage attributes a HEAD result to the OAuth account that
+// authorized it, never to the possibly different pool-wide active account.
+func (p *AccountPool) observeAccountUsage(id string, usage *guardian.ProxyUsage) (accounts.Account, bool) {
+	if id == "" || usage == nil {
 		return accounts.Account{}, false
 	}
-	reached, err := p.mgr.ObserveUsage(acc.ID, AccountUsage(usage))
+	var acc accounts.Account
+	for _, candidate := range p.mgr.Accounts() {
+		if candidate.ID == id {
+			acc = candidate
+			break
+		}
+	}
+	if acc.ID == "" {
+		return accounts.Account{}, false
+	}
+	reached, err := p.mgr.ObserveUsage(id, AccountUsage(usage))
 	if err != nil {
 		logx.Warn("saving account usage failed account=%s err=%s", logx.Email(acc.Name()), logx.Err(err))
 	}
